@@ -11,6 +11,6 @@ Coming soon to Chrome Web Store (in review)!
 
 ## Usage
 
-![Screenshot of Download Feature](https://github.com/MaxMaeder/UW-Madison-Schedule-Downloader/blob/master/webstore/Card 1.png)
+![Screenshot of Download Feature](https://github.com/MaxMaeder/UW-Madison-Schedule-Downloader/blob/master/webstore/Card%201.png)
 
 Simply press download!
