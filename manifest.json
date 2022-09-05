@@ -10,7 +10,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://my.wisc.edu/portal/p/class-schedule.ctf2/*"],
+      "matches": ["https://my.wisc.edu/portal/p/class-schedule*/*"],
       "js": ["content-script.js"]
     }
   ],
