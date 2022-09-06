@@ -1,7 +1,7 @@
 {
   "name": "UW-Madison Schedule Download",
   "description": "Download your UW-Madison schedule as a file.",
-  "version": "1.0",
+  "version": "1.0.1",
   "icons": {
     "128": "icon.png"
   },
