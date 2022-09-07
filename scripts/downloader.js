@@ -6,7 +6,7 @@ document.getElementById("ext-download").addEventListener("click", () => {
 
   // Iterate over events
   for (let event of events) {
-
+    
     // Get day of week event will occur on
     let day =
       event.parentElement.getElementsByClassName("tt-dayTitle")[0].innerText;
@@ -22,16 +22,17 @@ document.getElementById("ext-download").addEventListener("click", () => {
     }
 
     // Parse dates and times of the event
-    let lastDate = eventInfo[3].split(" - ")[1];
-    let times = eventInfo[4].split(" to ");
+    let [firstDate, lastDate] = eventInfo[3].split(" - ");
+    let [startTime, endTime] = eventInfo[4].split(" to ");
 
     // Save event data to array
     let parsedEvent = {
       name: `${eventInfo[0]} ${eventInfo[1]}`,
       location: eventInfo[2],
       day,
-      startTime: times[0],
-      endTime: times[1],
+      startTime,
+      endTime,
+      firstDate,
       lastDate,
     };
     parsedEvents.push(parsedEvent);
@@ -41,7 +42,7 @@ document.getElementById("ext-download").addEventListener("click", () => {
 
   // Iterate over parsed events
   for (let parsedEvent of parsedEvents) {
-
+    
     // Get start and end times of the event
     let startTime = luxon.DateTime.fromFormat(
       `${parsedEvent.day} ${parsedEvent.startTime}`,
@@ -52,11 +53,20 @@ document.getElementById("ext-download").addEventListener("click", () => {
       "EEE h:mm a"
     );
 
-    // Get the date after which the event will not occur
+    // Get the dates before or after which the event will not occur
+    let firstDate = luxon.DateTime.fromFormat(
+      parsedEvent.firstDate,
+      "MMM d"
+    );
     let lastDate = luxon.DateTime.fromFormat(
       parsedEvent.lastDate,
       "MMM d, yyyy"
     );
+
+    // Make sure event doesn't start before the first date
+    while (startTime < firstDate) { // Is startTime before firstDate?
+      startTime = startTime.plus({ weeks: 1 });
+    }
 
     // Add event to calendar
     cal.addEvent(
