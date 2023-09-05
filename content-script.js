@@ -25,4 +25,6 @@ const loadScript = (path) => {
 loadStyle("style/styles.css");
 loadScript("scripts/downloader.js");
 loadScript("scripts/ics.deps.min.js");
+loadScript("scripts/nanoid.min.js");
+loadScript("scripts/ics.js");
 loadScript("scripts/luxon.min.js");

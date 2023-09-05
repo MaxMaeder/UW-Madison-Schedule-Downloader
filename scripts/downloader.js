@@ -64,11 +64,21 @@ document.getElementById("ext-download").addEventListener("click", () => {
     );
 
     // Make sure event doesn't start before the first date
-    while (startTime < firstDate) { // Is startTime before firstDate?
+    while (startTime.startOf("day") < firstDate.startOf("day")) { // Is startTime before firstDate?
       startTime = startTime.plus({ weeks: 1 });
+      endTime = endTime.plus({ weeks: 1 }); // Also need to increase end time by same amnt.
     }
 
     // Add event to calendar
+    console.log({
+      name: parsedEvent.name,
+      location: parsedEvent.location,
+      startTime: startTime.toJSDate().toString(),
+      endTime: endTime.toJSDate().toString(),
+      freq: "WEEKLY",
+      until: lastDate.toJSDate().toString(),
+    })
+
     cal.addEvent(
       parsedEvent.name,
       "",
