@@ -1,7 +1,7 @@
 {
   "name": "uw-madison-schedule-downloader",
   "displayName": "UW Madison Schedule Downloader",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Downloads a student's class schedule from the UW Madison Schedule Site",
   "author": "Max Maeder <max@mmaeder.com>",
   "scripts": {

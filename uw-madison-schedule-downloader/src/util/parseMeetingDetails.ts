@@ -6,6 +6,8 @@ export interface Meeting {
 }
 
 const parseMeetingDetails = (scheduleStr: string): Meeting => {
+  scheduleStr = scheduleStr.replace(/\s+/g, " ").trim();
+
   const [days, ...timeAndLocation] = scheduleStr.split(" ");
 
   const startTime = `${timeAndLocation[0]} ${timeAndLocation[1]}`;

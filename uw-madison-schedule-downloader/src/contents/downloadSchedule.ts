@@ -19,13 +19,17 @@ browser.runtime.onMessage.addListener((message: AppMessage) => {
 
   const courses = document.querySelectorAll("#course-meetings");
   for (let i = 0; i < courses.length; i++) {
-    const courseName = courses[i].querySelector("h3").textContent;
+    const courseName = courses[i].querySelector("strong");
+    if (!courseName) continue;
+
     const [meetingList, examList] = courses[i].querySelectorAll("ul");
 
     const meetings = meetingList.querySelectorAll("li");
     for (let j = 0; j < meetings.length; j++) {
-      const type = meetings[j].querySelector("strong").textContent;
+      const type = meetings[j].querySelector("strong");
       const details = meetings[j].querySelector("span");
+
+      if (!type || !details) continue;
 
       const parsedDetails = parseMeetingDetails(details.textContent);
 
@@ -33,7 +37,7 @@ browser.runtime.onMessage.addListener((message: AppMessage) => {
         calEvents.push({
           uid: uid(),
           stamp: { date: new Date() },
-          summary: `${type} | ${courseName}`,
+          summary: `${type.textContent} | ${courseName.textContent}`,
           location: parsedDetails.location,
           start: { date: meetingTime.start.toJSDate() },
           end: { date: meetingTime.end.toJSDate() },
