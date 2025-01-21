@@ -6,6 +6,7 @@ import browser from "webextension-polyfill";
 
 import { DOWNLOAD_SHED_MSG } from "~assets/constants";
 import type { AppMessage } from "~types";
+import getCleanedContent from "~util/getCleanedContent";
 import parseMeetingDetails from "~util/parseMeetingDetails";
 
 export const config: PlasmoCSConfig = {
@@ -19,7 +20,7 @@ browser.runtime.onMessage.addListener((message: AppMessage) => {
 
   const courses = document.querySelectorAll("#course-meetings");
   for (let i = 0; i < courses.length; i++) {
-    const courseName = courses[i].querySelector("strong");
+    const courseName = courses[i].querySelector("h3, strong");
     if (!courseName) continue;
 
     const [meetingList, examList] = courses[i].querySelectorAll("ul");
@@ -31,21 +32,31 @@ browser.runtime.onMessage.addListener((message: AppMessage) => {
 
       if (!type || !details) continue;
 
-      const parsedDetails = parseMeetingDetails(details.textContent);
+      const detailsText = getCleanedContent(details);
+      if (detailsText.toLowerCase().includes("online")) {
+        console.log("Online course, skipping meeting");
+        continue;
+      }
 
-      for (let meetingTime of parsedDetails.times) {
-        calEvents.push({
-          uid: uid(),
-          stamp: { date: new Date() },
-          summary: `${type.textContent} | ${courseName.textContent}`,
-          location: parsedDetails.location,
-          start: { date: meetingTime.start.toJSDate() },
-          end: { date: meetingTime.end.toJSDate() },
-          recurrenceRule: {
-            frequency: "WEEKLY",
-            interval: 1
-          }
-        });
+      try {
+        const parsedDetails = parseMeetingDetails(detailsText);
+
+        for (let meetingTime of parsedDetails.times) {
+          calEvents.push({
+            uid: uid(),
+            stamp: { date: new Date() },
+            summary: `${type.textContent} | ${courseName.textContent}`,
+            location: parsedDetails.location,
+            start: { date: meetingTime.start.toJSDate() },
+            end: { date: meetingTime.end.toJSDate() },
+            recurrenceRule: {
+              frequency: "WEEKLY",
+              interval: 1
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing meeting details", error);
       }
     }
   }
