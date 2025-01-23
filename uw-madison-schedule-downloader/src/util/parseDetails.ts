@@ -5,7 +5,13 @@ export interface Meeting {
   location: string;
 }
 
-const parseMeetingDetails = (scheduleStr: string): Meeting => {
+export interface Exam {
+  start: DateTime;
+  end: DateTime;
+  location: string;
+}
+
+export const parseMeetingDetails = (scheduleStr: string): Meeting => {
   const [days, ...timeAndLocation] = scheduleStr.split(" ");
 
   const startTime = `${timeAndLocation[0]} ${timeAndLocation[1]}`;
@@ -38,6 +44,36 @@ const parseMeetingDetails = (scheduleStr: string): Meeting => {
   };
 };
 
+export const parseExamDetails = (examStr: string): Exam => {
+  const [month, day, ...timeAndLocation] = examStr.split(" ");
+
+  const startTime = `${timeAndLocation[0]} ${timeAndLocation[1]}`;
+  const endTime = `${timeAndLocation[3]} ${timeAndLocation[4]}`;
+  let location = timeAndLocation.slice(5).join(" ");
+  location = location === "" ? "TBA" : location;
+
+  const dateFormat = "LLLd,";
+  const timeFormat = "h:mm a";
+
+  const examDay = DateTime.fromFormat(month + day, dateFormat);
+  const startDateTime = DateTime.fromFormat(startTime, timeFormat).set({
+    year: examDay.year,
+    month: examDay.month,
+    day: examDay.day
+  });
+  const endDateTime = DateTime.fromFormat(endTime, timeFormat).set({
+    year: examDay.year,
+    month: examDay.month,
+    day: examDay.day
+  });
+
+  return {
+    start: startDateTime,
+    end: endDateTime,
+    location: location
+  };
+};
+
 const dayToWeekday = (day: string): WeekdayNumbers => {
   switch (day) {
     case "M":
@@ -54,5 +90,3 @@ const dayToWeekday = (day: string): WeekdayNumbers => {
       throw new Error("Invalid day abbreviation");
   }
 };
-
-export default parseMeetingDetails;
