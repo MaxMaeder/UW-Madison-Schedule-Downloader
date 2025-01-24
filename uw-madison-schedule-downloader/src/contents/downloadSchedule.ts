@@ -20,7 +20,6 @@ browser.runtime.onMessage.addListener((message: AppMessage) => {
   const courses = document.querySelectorAll("#course-meetings");
   for (let i = 0; i < courses.length; i++) {
     const fullCourse = courses[i].querySelector("h3").textContent;
-    console.log(fullCourse);
     const [courseTitle, courseName] = fullCourse.split(": ");
     const lists = courses[i].querySelectorAll(":scope > ul");
 

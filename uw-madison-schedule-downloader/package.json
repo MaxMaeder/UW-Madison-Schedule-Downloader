@@ -37,7 +37,8 @@
   },
   "manifest": {
     "permissions": [
-      "activeTab"
+      "activeTab",
+      "storage"
     ]
   }
 }
