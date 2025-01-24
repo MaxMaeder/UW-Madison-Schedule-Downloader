@@ -47,8 +47,11 @@ const Popup = () => {
     });
 
     if (activeTab.id)
-      await browser.tabs.sendMessage(activeTab.id, { type: DOWNLOAD_SHED_MSG });
-  }, []);
+      await browser.tabs.sendMessage(activeTab.id, {
+        type: DOWNLOAD_SHED_MSG,
+        payload: breaks
+      });
+  }, [breaks]);
 
   const openSite = useCallback(() => {
     window.open("https://" + SCHEDULE_SITE_HOST + SCHEDULE_SITE_PATH, "_blank");
@@ -226,7 +229,9 @@ const Popup = () => {
           )}
           {isShedSite ? (
             <Button leftIcon={<IconDownload />} onClick={downloadSchedule}>
-              Download Schedule
+              {breaks.length > 0
+                ? "Download Schedule with Breaks"
+                : "Download Schedule"}
             </Button>
           ) : (
             <Button leftIcon={<IconArrowUpRight />} onClick={openSite}>

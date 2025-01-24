@@ -11,19 +11,22 @@ export interface Exam {
   location: string;
 }
 
-export const parseMeetingDetails = (scheduleStr: string): Meeting => {
+export const parseMeetingDetails = (
+  scheduleStr: string,
+  initDate: Date
+): Meeting => {
   const [days, ...timeAndLocation] = scheduleStr.split(" ");
 
   const startTime = `${timeAndLocation[0]} ${timeAndLocation[1]}`;
   const endTime = `${timeAndLocation[3]} ${timeAndLocation[4]}`;
   const location = timeAndLocation.slice(5).join(" ");
 
-  const today = DateTime.now();
+  const startDate = DateTime.fromJSDate(initDate);
   const timeFormat = "h:mm a";
 
   const times = [...days].map((day) => {
     const dayOfWeek = dayToWeekday(day);
-    const nextDay = today.set({ weekday: dayOfWeek });
+    const nextDay = startDate.set({ weekday: dayOfWeek });
     const startDateTime = DateTime.fromFormat(startTime, timeFormat).set({
       year: nextDay.year,
       month: nextDay.month,
