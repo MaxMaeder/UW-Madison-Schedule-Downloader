@@ -13,7 +13,7 @@ export interface Exam {
 
 export const parseMeetingDetails = (
   scheduleStr: string,
-  initDate: Date
+  initDate: DateTime
 ): Meeting => {
   const [days, ...timeAndLocation] = scheduleStr.split(" ");
 
@@ -21,7 +21,7 @@ export const parseMeetingDetails = (
   const endTime = `${timeAndLocation[3]} ${timeAndLocation[4]}`;
   const location = timeAndLocation.slice(5).join(" ");
 
-  const startDate = DateTime.fromJSDate(initDate);
+  const startDate = initDate;
   const timeFormat = "h:mm a";
 
   const times = [...days].map((day) => {

@@ -29,13 +29,13 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
   const calEvents: VEvent[] = [];
 
   let breaks: Break[] = message.payload;
-  let initDate: Date;
-  let endDate: Date;
+  let initDate: DateTime;
+  let endDate: DateTime;
   let exceptionDates: Date[] = [];
 
   if (breaks.length > 0) {
-    initDate = new Date(breaks[0].date);
-    endDate = new Date(breaks[breaks.length - 1].date);
+    initDate = DateTime.fromJSDate(new Date(breaks[0].date));
+    endDate = DateTime.fromJSDate(new Date(breaks[breaks.length - 1].date));
     breaks = breaks.slice(1, -1);
 
     for (let i = 0; i < breaks.length; i++) {
@@ -47,29 +47,15 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
       }
     }
   } else {
-    initDate = new Date();
-    endDate = new Date();
-    endDate.setFullYear(endDate.getFullYear() + 1);
+    initDate = DateTime.now();
+    endDate = initDate.plus({ years: 1 });
   }
-
-  console.log("Break info!");
-  console.log("breaks: ", breaks);
-  console.log("initDate: ", initDate);
-  console.log("endDate: ", endDate);
-  let isoDate = endDate.toISOString();
-  console.log(isoDate);
-  let year = isoDate.slice(0, 4);
-  let month = isoDate.slice(5, 7);
-  let day = isoDate.slice(8, 10);
-  console.log(year, month, day);
-  console.log(`${year}${month}${day}`);
-  console.log("exceptionDates: ", exceptionDates);
 
   const courses = document.querySelectorAll("#course-meetings");
   for (let i = 0; i < courses.length; i++) {
     const fullCourse = courses[i].querySelector("h3")?.textContent || "";
     const [courseTitle, courseName] = fullCourse.split(": ");
-    const lists = courses[i].querySelectorAll(":scope > ul");
+    const lists = Array.from(courses[i].querySelectorAll(":scope > ul"));
 
     const [meetingList, examList] = lists;
 
@@ -128,7 +114,7 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
             interval: 1,
             until: {
               type: "DATE",
-              date: endDate
+              date: endDate.toJSDate()
             }
           },
           exceptionDates:
