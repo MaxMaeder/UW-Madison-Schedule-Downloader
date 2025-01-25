@@ -31,6 +31,7 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
   let breaks: Break[] = message.payload;
   let initDate: DateTime;
   let endDate: DateTime;
+  let finalDate: Date;
   let exceptionDates: Date[] = [];
 
   if (breaks.length > 0) {
@@ -50,6 +51,19 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
     initDate = DateTime.now();
     endDate = initDate.plus({ years: 1 });
   }
+
+  // Hacky solution to get around the bug in ts-ics.
+  // Check comment below for more details.
+  finalDate = endDate.toJSDate();
+  Object.defineProperty(finalDate, "toString", {
+    value: function () {
+      let isoDate = this.toISOString();
+      let year = isoDate.slice(0, 4);
+      let month = isoDate.slice(5, 7);
+      let day = isoDate.slice(8, 10);
+      return `${year}${month}${day}`;
+    }
+  });
 
   const courses = document.querySelectorAll("#course-meetings");
   for (let i = 0; i < courses.length; i++) {
@@ -93,7 +107,7 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
         initDate
       );
 
-      description += `\t${type}`;
+      description = `${type} ` + description;
 
       let descElement = meetings[j].querySelector("em");
       if (descElement) {
@@ -113,13 +127,12 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
             frequency: "WEEKLY",
             interval: 1,
             until: {
-              type: "DATE",
-              date: endDate.toJSDate()
+              date: finalDate
             }
           },
           exceptionDates:
             exceptionDates.length > 0
-              ? exceptionDates.map((date) => ({ date }))
+              ? exceptionDates.map((date) => ({ date, type: "DATE" }))
               : []
         });
       }
@@ -132,7 +145,22 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
     events: calEvents
   };
 
-  const generatedCal = generateIcsCalendar(calendar);
+  let generatedCal = generateIcsCalendar(calendar);
 
-  fileDownload(generatedCal, "uw-schedule.ics");
+  // There is a bug in ts-ics (before version 1.6.2) where the UNTIL field
+  // is not correctly generated. It adds an "undefined" string before the date
+  // if the local property is not defined, along with incorrectly formatting the date.
+  // This is a hacky solution to fix that.
+  //
+  // Ideally this could be fixed by updating the ts-ics package to the working version,
+  // but, I ran into numerous dependency issues when trying to update the package and
+  // wasn't able to resolve them.
+  //
+  // https://github.com/Neuvernetzung/ts-ics/commit/36343d5691eb90dcc65687164ec1fe9845e0fbb3
+  let correctedCalendar = generatedCal.replace(
+    /UNTIL=undefined(\d{8})/g,
+    "UNTIL=$1"
+  );
+
+  fileDownload(correctedCalendar, "uw-schedule.ics");
 });
