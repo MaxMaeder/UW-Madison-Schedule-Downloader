@@ -242,10 +242,7 @@ const Popup = () => {
 
         <Text c="dimmed" align="center" mt="lg">
           Made by{" "}
-          <Anchor
-            color="dimmed"
-            href="https://www.linkedin.com/in/maxmaeder/"
-            target="_blank">
+          <Anchor color="dimmed" href="https://mmaeder.com/" target="_blank">
             Max Maeder
           </Anchor>
         </Text>

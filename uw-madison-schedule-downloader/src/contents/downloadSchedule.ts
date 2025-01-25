@@ -177,7 +177,7 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
   // but, I ran into numerous dependency issues when trying to update the package and
   // wasn't able to resolve them.
   //
-  // https://github.com/Neuvernetzung/ts-ics/commit/36343d5691eb90dcc65687164ec1fe9845e0fbb3
+  // https://github.com/Neuvernetzung/ts-ics/pull/117
   let correctedCalendar = generatedCal.replace(
     /UNTIL=undefined(\d{8})/g,
     "UNTIL=$1"
