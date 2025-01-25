@@ -6,6 +6,7 @@ import { uid } from "uid";
 import browser from "webextension-polyfill";
 
 import { DOWNLOAD_SHED_MSG } from "~assets/constants";
+import getCleanedContent from "~util/getCleanedContent";
 import { parseExamDetails, parseMeetingDetails } from "~util/parseDetails";
 
 export const config: PlasmoCSConfig = {
@@ -67,29 +68,39 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
 
   const courses = document.querySelectorAll("#course-meetings");
   for (let i = 0; i < courses.length; i++) {
-    const fullCourse = courses[i].querySelector("h3")?.textContent || "";
+    const fullCourse =
+      courses[i].querySelector("h3, strong")?.textContent || "";
+
+    if (!fullCourse) continue;
+
     const [courseTitle, courseName] = fullCourse.split(": ");
     const lists = Array.from(courses[i].querySelectorAll(":scope > ul"));
 
     const [meetingList, examList] = lists;
 
-    const exams = examList.querySelectorAll("li");
+    const exams = examList.children;
     let examString = "";
 
     for (let j = 0; j < exams.length; j++) {
       const examStr = exams[j].querySelector("span")?.textContent || "";
+      if (!examStr) continue;
+
       const examDetails = parseExamDetails(examStr);
 
       examString += `Exam: ${examStr}\t`;
 
-      calEvents.push({
-        uid: uid(),
-        stamp: { date: new Date() },
-        summary: `${courseTitle} FINAL EXAM`,
-        location: examDetails.location,
-        start: { date: examDetails.start.toJSDate() },
-        end: { date: examDetails.end.toJSDate() }
-      });
+      try {
+        calEvents.push({
+          uid: uid(),
+          stamp: { date: new Date() },
+          summary: `${courseTitle} FINAL EXAM`,
+          location: examDetails.location,
+          start: { date: examDetails.start.toJSDate() },
+          end: { date: examDetails.end.toJSDate() }
+        });
+      } catch (error) {
+        console.error("Error parsing exam details", error);
+      }
     }
 
     examString = examString.trim();
@@ -102,39 +113,49 @@ browser.runtime.onMessage.addListener((message: DownloadScheduleMessage) => {
       const type = meetings[j].querySelector("strong")?.textContent || "";
       const details = meetings[j].querySelector("span");
 
-      const parsedDetails = parseMeetingDetails(
-        details?.textContent || "",
-        initDate
-      );
+      if (!type || !details) continue;
+
+      const detailsText = getCleanedContent(details);
+      if (detailsText.toLowerCase().includes("online")) {
+        console.log("Online course, skipping meeting");
+        continue;
+      }
 
       description = `${type} ` + description;
 
+      // Sometimes there's another list of details inside the main details
+      // Just add it to the description, might be important
       let descElement = meetings[j].querySelector("em");
       if (descElement) {
         description += `\t${descElement.textContent}`;
       }
 
-      for (let meetingTime of parsedDetails.times) {
-        calEvents.push({
-          uid: uid(),
-          stamp: { date: new Date() },
-          summary: `${courseTitle}`,
-          description: `${description}`,
-          location: parsedDetails.location,
-          start: { date: meetingTime.start.toJSDate() },
-          end: { date: meetingTime.end.toJSDate() },
-          recurrenceRule: {
-            frequency: "WEEKLY",
-            interval: 1,
-            until: {
-              date: finalDate
-            }
-          },
-          exceptionDates:
-            exceptionDates.length > 0
-              ? exceptionDates.map((date) => ({ date, type: "DATE" }))
-              : []
-        });
+      try {
+        const parsedDetails = parseMeetingDetails(detailsText, initDate);
+        for (let meetingTime of parsedDetails.times) {
+          calEvents.push({
+            uid: uid(),
+            stamp: { date: new Date() },
+            summary: `${courseTitle}`,
+            description: `${description}`,
+            location: parsedDetails.location,
+            start: { date: meetingTime.start.toJSDate() },
+            end: { date: meetingTime.end.toJSDate() },
+            recurrenceRule: {
+              frequency: "WEEKLY",
+              interval: 1,
+              until: {
+                date: finalDate
+              }
+            },
+            exceptionDates:
+              exceptionDates.length > 0
+                ? exceptionDates.map((date) => ({ date, type: "DATE" }))
+                : []
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing meeting details", error);
       }
     }
   }
